@@ -1,0 +1,630 @@
+{
+  "manifest_version": 1,
+  "type": "device",
+  "name": "e-data (Datadis)",
+  "description": {
+    "en": "Spanish electricity supplies from Datadis: consumption, peak power and alerts.",
+    "fr": "Compteurs électriques espagnols via Datadis : consommation, puissance max. et alertes.",
+    "de": "Spanische Stromanschlüsse über Datadis: Verbrauch, Spitzenleistung und Alarme.",
+    "es": "Suministros eléctricos de Datadis: consumo, potencia máxima y alertas."
+  },
+  "version": "0.0.0",
+  "docker_image": "ghcr.io/gboulvin/gladys-e-data-datadis:0.0.0",
+  "gladys_version": ">=5.1.0",
+  "cover_image": "https://raw.githubusercontent.com/gboulvin/Gladys-e-data-Datadis/main/cover.png",
+  "categories": ["energy"],
+  "transports": ["cloud"],
+  "config_schema": [
+    {
+      "key": "intro",
+      "type": "section",
+      "label": {
+        "en": "Connect your Datadis account",
+        "fr": "Connectez votre compte Datadis",
+        "de": "Verbinden Sie Ihr Datadis-Konto",
+        "es": "Conecte su cuenta de Datadis"
+      },
+      "description": {
+        "en": "Datadis is the free platform of the Spanish electricity distributors. Create an account on datadis.es with the NIF/NIE of the supply holder, then enter the same credentials here. Readings arrive with one or two days of delay.",
+        "fr": "Datadis est la plateforme gratuite des distributeurs d'électricité espagnols. Créez un compte sur datadis.es avec le NIF/NIE du titulaire du contrat, puis saisissez les mêmes identifiants ici. Les relevés arrivent avec un ou deux jours de décalage.",
+        "de": "Datadis ist die kostenlose Plattform der spanischen Stromnetzbetreiber. Erstellen Sie auf datadis.es ein Konto mit der NIF/NIE des Vertragsinhabers und geben Sie hier dieselben Zugangsdaten ein. Die Messwerte kommen mit ein bis zwei Tagen Verzögerung.",
+        "es": "Datadis es la plataforma gratuita de las distribuidoras eléctricas españolas. Cree una cuenta en datadis.es con el NIF/NIE del titular del suministro e introduzca aquí las mismas credenciales. Las lecturas llegan con uno o dos días de retraso."
+      },
+      "links": [
+        {
+          "url": "https://datadis.es/register",
+          "label": {
+            "en": "Create a Datadis account",
+            "fr": "Créer un compte Datadis",
+            "de": "Datadis-Konto erstellen",
+            "es": "Crear una cuenta de Datadis"
+          }
+        }
+      ]
+    },
+    {
+      "key": "username",
+      "type": "string",
+      "label": {
+        "en": "Username (NIF/NIE)",
+        "fr": "Identifiant (NIF/NIE)",
+        "de": "Benutzername (NIF/NIE)",
+        "es": "Usuario (NIF/NIE)"
+      },
+      "placeholder": {
+        "en": "e.g. 12345678Z",
+        "fr": "ex. 12345678Z",
+        "de": "z. B. 12345678Z",
+        "es": "p. ej. 12345678Z"
+      },
+      "required": true
+    },
+    {
+      "key": "password",
+      "type": "secret",
+      "label": {
+        "en": "Password",
+        "fr": "Mot de passe",
+        "de": "Passwort",
+        "es": "Contraseña"
+      },
+      "required": true
+    },
+    {
+      "key": "authorized_nif",
+      "type": "string",
+      "label": {
+        "en": "Authorized NIF (optional)",
+        "fr": "NIF autorisé (facultatif)",
+        "de": "Autorisierte NIF (optional)",
+        "es": "NIF autorizado (opcional)"
+      },
+      "description": {
+        "en": "Only to read the supplies of another holder who authorized your account on Datadis.",
+        "fr": "Uniquement pour lire les compteurs d'un autre titulaire qui a autorisé votre compte sur Datadis.",
+        "de": "Nur um die Anschlüsse eines anderen Inhabers zu lesen, der Ihr Konto auf Datadis autorisiert hat.",
+        "es": "Solo para leer los suministros de otro titular que ha autorizado su cuenta en Datadis."
+      },
+      "placeholder": {
+        "en": "e.g. 87654321X",
+        "fr": "ex. 87654321X",
+        "de": "z. B. 87654321X",
+        "es": "p. ej. 87654321X"
+      },
+      "required": false
+    },
+    {
+      "key": "refresh_hours",
+      "type": "number",
+      "label": {
+        "en": "Refresh interval (hours)",
+        "fr": "Intervalle de rafraîchissement (heures)",
+        "de": "Aktualisierungsintervall (Stunden)",
+        "es": "Intervalo de actualización (horas)"
+      },
+      "description": {
+        "en": "How often Datadis is read. Datadis limits repeated queries: 6 hours minimum.",
+        "fr": "Fréquence de lecture de Datadis. Datadis limite les requêtes répétées : 6 heures minimum.",
+        "de": "Wie oft Datadis gelesen wird. Datadis begrenzt wiederholte Abfragen: mindestens 6 Stunden.",
+        "es": "Frecuencia de lectura de Datadis. Datadis limita las consultas repetidas: 6 horas como mínimo."
+      },
+      "required": false,
+      "default": 12,
+      "min": 6,
+      "max": 48
+    },
+    {
+      "key": "history_months",
+      "type": "number",
+      "label": {
+        "en": "History to import (months)",
+        "fr": "Historique à importer (mois)",
+        "de": "Zu importierender Verlauf (Monate)",
+        "es": "Historial a importar (meses)"
+      },
+      "description": {
+        "en": "Months of hourly consumption read on the first sync (Datadis keeps two years).",
+        "fr": "Mois de consommation horaire lus à la première synchronisation (Datadis conserve deux ans).",
+        "de": "Monate stündlichen Verbrauchs, die bei der ersten Synchronisierung gelesen werden (Datadis speichert zwei Jahre).",
+        "es": "Meses de consumo horario leídos en la primera sincronización (Datadis guarda dos años)."
+      },
+      "required": false,
+      "default": 3,
+      "min": 1,
+      "max": 24
+    },
+    {
+      "key": "daily_threshold_kwh",
+      "type": "number",
+      "label": {
+        "en": "High daily consumption (kWh)",
+        "fr": "Consommation quotidienne élevée (kWh)",
+        "de": "Hoher Tagesverbrauch (kWh)",
+        "es": "Consumo diario elevado (kWh)"
+      },
+      "description": {
+        "en": "Threshold of the \"High daily consumption\" scene trigger. 0 disables it.",
+        "fr": "Seuil du déclencheur de scène « Consommation quotidienne élevée ». 0 le désactive.",
+        "de": "Schwelle des Szenenauslösers „Hoher Tagesverbrauch“. 0 deaktiviert ihn.",
+        "es": "Umbral del disparador de escena «Consumo diario elevado». 0 lo desactiva."
+      },
+      "required": false,
+      "default": 0,
+      "min": 0,
+      "max": 10000
+    },
+    {
+      "key": "power_alert_percent",
+      "type": "number",
+      "label": {
+        "en": "Power peak alarm (% of contracted)",
+        "fr": "Alarme de pic de puissance (% du souscrit)",
+        "de": "Leistungsspitzen-Alarm (% der Vertragsleistung)",
+        "es": "Alarma de pico de potencia (% de la contratada)"
+      },
+      "description": {
+        "en": "A maximeter peak at or above this share of the contracted power fires the \"Power peak alarm\" trigger.",
+        "fr": "Un pic du maximètre atteignant cette part de la puissance souscrite lance le déclencheur « Alarme de pic de puissance ».",
+        "de": "Eine Maximeter-Spitze ab diesem Anteil der Vertragsleistung löst den Auslöser „Leistungsspitzen-Alarm“ aus.",
+        "es": "Un pico del maxímetro igual o superior a esta parte de la potencia contratada lanza el disparador «Alarma de pico de potencia»."
+      },
+      "required": false,
+      "default": 90,
+      "min": 50,
+      "max": 200
+    }
+  ],
+  "actions": [
+    {
+      "key": "test_connection",
+      "label": {
+        "en": "Test the connection",
+        "fr": "Tester la connexion",
+        "de": "Verbindung testen",
+        "es": "Probar la conexión"
+      },
+      "timeout_seconds": 60
+    },
+    {
+      "key": "refresh_now",
+      "label": {
+        "en": "Refresh the data now",
+        "fr": "Actualiser les données maintenant",
+        "de": "Daten jetzt aktualisieren",
+        "es": "Actualizar los datos ahora"
+      },
+      "timeout_seconds": 120
+    }
+  ],
+  "scene_triggers": [
+    {
+      "key": "new_daily_data",
+      "label": {
+        "en": "New daily data",
+        "fr": "Nouvelles données quotidiennes",
+        "de": "Neue Tagesdaten",
+        "es": "Nuevos datos diarios"
+      },
+      "description": {
+        "en": "Datadis delivered the readings of a new complete day.",
+        "fr": "Datadis a fourni les relevés d'une nouvelle journée complète.",
+        "de": "Datadis hat die Messwerte eines neuen vollständigen Tages geliefert.",
+        "es": "Datadis ha entregado las lecturas de un nuevo día completo."
+      },
+      "fields": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": { "en": "Supply", "fr": "Compteur", "de": "Anschluss", "es": "Suministro" }
+        }
+      ],
+      "variables": [
+        {
+          "key": "date",
+          "type": "string",
+          "label": { "en": "Date", "fr": "Date", "de": "Datum", "es": "Fecha" }
+        },
+        {
+          "key": "consumption_kwh",
+          "type": "number",
+          "label": {
+            "en": "Consumption (kWh)",
+            "fr": "Consommation (kWh)",
+            "de": "Verbrauch (kWh)",
+            "es": "Consumo (kWh)"
+          }
+        }
+      ]
+    },
+    {
+      "key": "high_daily_consumption",
+      "label": {
+        "en": "High daily consumption",
+        "fr": "Consommation quotidienne élevée",
+        "de": "Hoher Tagesverbrauch",
+        "es": "Consumo diario elevado"
+      },
+      "description": {
+        "en": "A day consumed more than the threshold set in the configuration.",
+        "fr": "Une journée a consommé plus que le seuil défini dans la configuration.",
+        "de": "Ein Tag hat mehr als die in der Konfiguration festgelegte Schwelle verbraucht.",
+        "es": "Un día ha consumido más que el umbral definido en la configuración."
+      },
+      "fields": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": { "en": "Supply", "fr": "Compteur", "de": "Anschluss", "es": "Suministro" }
+        }
+      ],
+      "variables": [
+        {
+          "key": "date",
+          "type": "string",
+          "label": { "en": "Date", "fr": "Date", "de": "Datum", "es": "Fecha" }
+        },
+        {
+          "key": "consumption_kwh",
+          "type": "number",
+          "label": {
+            "en": "Consumption (kWh)",
+            "fr": "Consommation (kWh)",
+            "de": "Verbrauch (kWh)",
+            "es": "Consumo (kWh)"
+          }
+        },
+        {
+          "key": "threshold_kwh",
+          "type": "number",
+          "label": {
+            "en": "Threshold (kWh)",
+            "fr": "Seuil (kWh)",
+            "de": "Schwelle (kWh)",
+            "es": "Umbral (kWh)"
+          }
+        }
+      ]
+    },
+    {
+      "key": "power_peak_alarm",
+      "label": {
+        "en": "Power peak alarm",
+        "fr": "Alarme de pic de puissance",
+        "de": "Leistungsspitzen-Alarm",
+        "es": "Alarma de pico de potencia"
+      },
+      "description": {
+        "en": "The maximeter recorded a peak close to or above the contracted power.",
+        "fr": "Le maximètre a enregistré un pic proche ou au-dessus de la puissance souscrite.",
+        "de": "Das Maximeter hat eine Spitze nahe oder über der Vertragsleistung erfasst.",
+        "es": "El maxímetro ha registrado un pico cercano o superior a la potencia contratada."
+      },
+      "fields": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": { "en": "Supply", "fr": "Compteur", "de": "Anschluss", "es": "Suministro" }
+        }
+      ],
+      "variables": [
+        {
+          "key": "date",
+          "type": "string",
+          "label": { "en": "Date", "fr": "Date", "de": "Datum", "es": "Fecha" }
+        },
+        {
+          "key": "time",
+          "type": "string",
+          "label": { "en": "Time", "fr": "Heure", "de": "Uhrzeit", "es": "Hora" }
+        },
+        {
+          "key": "max_power_w",
+          "type": "number",
+          "label": {
+            "en": "Peak power (W)",
+            "fr": "Puissance du pic (W)",
+            "de": "Spitzenleistung (W)",
+            "es": "Potencia del pico (W)"
+          }
+        },
+        {
+          "key": "contracted_power_w",
+          "type": "number",
+          "label": {
+            "en": "Contracted power (W)",
+            "fr": "Puissance souscrite (W)",
+            "de": "Vertragsleistung (W)",
+            "es": "Potencia contratada (W)"
+          }
+        },
+        {
+          "key": "percent",
+          "type": "number",
+          "label": {
+            "en": "Share of contracted (%)",
+            "fr": "Part du souscrit (%)",
+            "de": "Anteil der Vertragsleistung (%)",
+            "es": "Parte de la contratada (%)"
+          }
+        }
+      ]
+    },
+    {
+      "key": "sync_error",
+      "label": {
+        "en": "Datadis error",
+        "fr": "Erreur Datadis",
+        "de": "Datadis-Fehler",
+        "es": "Error de Datadis"
+      },
+      "description": {
+        "en": "Datadis could not be read: wrong credentials, rate limit or service down.",
+        "fr": "Datadis n'a pas pu être lu : identifiants refusés, limite de requêtes ou service en panne.",
+        "de": "Datadis konnte nicht gelesen werden: falsche Zugangsdaten, Abfragelimit oder Dienst ausgefallen.",
+        "es": "No se ha podido leer Datadis: credenciales rechazadas, límite de consultas o servicio caído."
+      },
+      "fields": [
+        {
+          "key": "reason",
+          "type": "multi_select",
+          "label": { "en": "Reason", "fr": "Cause", "de": "Ursache", "es": "Causa" },
+          "options": [
+            {
+              "value": "auth",
+              "label": {
+                "en": "Credentials refused",
+                "fr": "Identifiants refusés",
+                "de": "Zugangsdaten abgelehnt",
+                "es": "Credenciales rechazadas"
+              }
+            },
+            {
+              "value": "rate_limit",
+              "label": {
+                "en": "Rate limit",
+                "fr": "Limite de requêtes",
+                "de": "Abfragelimit",
+                "es": "Límite de consultas"
+              }
+            },
+            {
+              "value": "unavailable",
+              "label": {
+                "en": "Service unavailable",
+                "fr": "Service indisponible",
+                "de": "Dienst nicht verfügbar",
+                "es": "Servicio no disponible"
+              }
+            }
+          ]
+        }
+      ],
+      "variables": [
+        {
+          "key": "reason",
+          "type": "string",
+          "label": { "en": "Reason", "fr": "Cause", "de": "Ursache", "es": "Causa" }
+        },
+        {
+          "key": "message",
+          "type": "string",
+          "label": { "en": "Message", "fr": "Message", "de": "Meldung", "es": "Mensaje" }
+        }
+      ]
+    }
+  ],
+  "scene_actions": [
+    {
+      "key": "refresh_data",
+      "label": {
+        "en": "Refresh Datadis data",
+        "fr": "Actualiser les données Datadis",
+        "de": "Datadis-Daten aktualisieren",
+        "es": "Actualizar los datos de Datadis"
+      },
+      "description": {
+        "en": "Read Datadis now instead of waiting for the next scheduled read.",
+        "fr": "Lit Datadis maintenant au lieu d'attendre la prochaine lecture planifiée.",
+        "de": "Liest Datadis sofort, statt auf die nächste geplante Abfrage zu warten.",
+        "es": "Lee Datadis ahora en lugar de esperar a la próxima lectura programada."
+      },
+      "timeout_seconds": 120,
+      "outputs": [
+        {
+          "key": "success",
+          "type": "boolean",
+          "label": { "en": "Success", "fr": "Réussite", "de": "Erfolg", "es": "Éxito" }
+        },
+        {
+          "key": "supplies",
+          "type": "number",
+          "label": {
+            "en": "Supplies",
+            "fr": "Compteurs",
+            "de": "Anschlüsse",
+            "es": "Suministros"
+          }
+        }
+      ]
+    },
+    {
+      "key": "get_consumption",
+      "label": {
+        "en": "Get the consumption",
+        "fr": "Obtenir la consommation",
+        "de": "Verbrauch abrufen",
+        "es": "Obtener el consumo"
+      },
+      "description": {
+        "en": "Consumption and peak power of a supply over a period, for the next actions.",
+        "fr": "Consommation et puissance max. d'un compteur sur une période, pour les actions suivantes.",
+        "de": "Verbrauch und Spitzenleistung eines Anschlusses über einen Zeitraum, für die folgenden Aktionen.",
+        "es": "Consumo y potencia máxima de un suministro en un periodo, para las acciones siguientes."
+      },
+      "timeout_seconds": 15,
+      "fields": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": { "en": "Supply", "fr": "Compteur", "de": "Anschluss", "es": "Suministro" },
+          "required": true
+        },
+        {
+          "key": "period",
+          "type": "select",
+          "label": { "en": "Period", "fr": "Période", "de": "Zeitraum", "es": "Periodo" },
+          "required": false,
+          "default": "current_month",
+          "options": [
+            {
+              "value": "last_day",
+              "label": {
+                "en": "Last available day",
+                "fr": "Dernier jour disponible",
+                "de": "Letzter verfügbarer Tag",
+                "es": "Último día disponible"
+              }
+            },
+            {
+              "value": "last_7_days",
+              "label": {
+                "en": "Last 7 days",
+                "fr": "7 derniers jours",
+                "de": "Letzte 7 Tage",
+                "es": "Últimos 7 días"
+              }
+            },
+            {
+              "value": "last_30_days",
+              "label": {
+                "en": "Last 30 days",
+                "fr": "30 derniers jours",
+                "de": "Letzte 30 Tage",
+                "es": "Últimos 30 días"
+              }
+            },
+            {
+              "value": "current_month",
+              "label": {
+                "en": "Current month",
+                "fr": "Mois en cours",
+                "de": "Aktueller Monat",
+                "es": "Mes actual"
+              }
+            },
+            {
+              "value": "previous_month",
+              "label": {
+                "en": "Previous month",
+                "fr": "Mois précédent",
+                "de": "Vormonat",
+                "es": "Mes anterior"
+              }
+            }
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "key": "consumption_kwh",
+          "type": "number",
+          "label": {
+            "en": "Consumption (kWh)",
+            "fr": "Consommation (kWh)",
+            "de": "Verbrauch (kWh)",
+            "es": "Consumo (kWh)"
+          }
+        },
+        {
+          "key": "days",
+          "type": "number",
+          "label": {
+            "en": "Days with data",
+            "fr": "Jours avec données",
+            "de": "Tage mit Daten",
+            "es": "Días con datos"
+          }
+        },
+        {
+          "key": "start_date",
+          "type": "string",
+          "label": {
+            "en": "First day",
+            "fr": "Premier jour",
+            "de": "Erster Tag",
+            "es": "Primer día"
+          }
+        },
+        {
+          "key": "end_date",
+          "type": "string",
+          "label": {
+            "en": "Last day",
+            "fr": "Dernier jour",
+            "de": "Letzter Tag",
+            "es": "Último día"
+          }
+        },
+        {
+          "key": "max_power_w",
+          "type": "number",
+          "label": {
+            "en": "Peak power (W)",
+            "fr": "Puissance max. (W)",
+            "de": "Spitzenleistung (W)",
+            "es": "Potencia máxima (W)"
+          }
+        }
+      ]
+    }
+  ],
+  "widgets": [
+    {
+      "key": "supply_overview",
+      "label": {
+        "en": "Electricity supply",
+        "fr": "Compteur électrique",
+        "de": "Stromanschluss",
+        "es": "Suministro eléctrico"
+      },
+      "description": {
+        "en": "Last day, current month, peak power and the last 14 days of a supply.",
+        "fr": "Dernier jour, mois en cours, puissance max. et 14 derniers jours d'un compteur.",
+        "de": "Letzter Tag, aktueller Monat, Spitzenleistung und die letzten 14 Tage eines Anschlusses.",
+        "es": "Último día, mes actual, potencia máxima y los últimos 14 días de un suministro."
+      },
+      "icon": "zap",
+      "settings": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": { "en": "Supply", "fr": "Compteur", "de": "Anschluss", "es": "Suministro" },
+          "required": true
+        }
+      ],
+      "action_timeout_seconds": 120
+    },
+    {
+      "key": "supplies_summary",
+      "label": {
+        "en": "Datadis supplies",
+        "fr": "Compteurs Datadis",
+        "de": "Datadis-Anschlüsse",
+        "es": "Suministros Datadis"
+      },
+      "description": {
+        "en": "Every supply of the account and the state of the Datadis connection.",
+        "fr": "Tous les compteurs du compte et l'état de la connexion à Datadis.",
+        "de": "Alle Anschlüsse des Kontos und der Status der Datadis-Verbindung.",
+        "es": "Todos los suministros de la cuenta y el estado de la conexión con Datadis."
+      },
+      "icon": "list",
+      "action_timeout_seconds": 120
+    }
+  ]
+}
