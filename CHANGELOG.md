@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-11-23
+
 ### Added
 
 - First release of the e-data (Datadis) integration for Gladys Assistant 5.1 or
@@ -32,4 +34,5 @@ the notes of the version's GitHub Release.
 - `SECURITY.md`, `CLAUDE.md`, CI on Node 22 and 24, Release workflow, GitHub
   Releases and Dependabot, from the official JavaScript template.
 
-[Unreleased]: https://github.com/gboulvin/Gladys-e-data-Datadis/commits/main
+[Unreleased]: https://github.com/gboulvin/Gladys-e-data-Datadis/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/gboulvin/Gladys-e-data-Datadis/releases/tag/v1.0.0

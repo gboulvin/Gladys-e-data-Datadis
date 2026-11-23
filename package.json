@@ -1,6 +1,6 @@
 {
   "name": "gladys-e-data-datadis",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "private": true,
   "description": "Gladys Assistant external integration for e-data (Datadis): Spanish electricity supplies, consumption and maximum power.",
   "type": "module",
